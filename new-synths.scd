@@ -86,3 +86,34 @@ SynthDef(\supersrhodes, {
 
 }).add;
 
+//theseanco's harpsi
+SynthDef(\supersharpsi, {
+    |out, freq, voice = 0.1, pan, sustain=1, att = 0.01, rel=1, synfb = 0.3, detune = 0|
+    var snd, click=0, env;
+    // Basic tone is a SinOsc
+	
+	env = EnvGen.ar(Env.linen(att,0.3,rel),timeScale:sustain,doneAction:2);
+	env = EnvGen.ar(Env.linen(att,0.3,rel),timeScale:sustain,doneAction:2);
+	snd = LFTri.ar(freq, click, 1) * SinOscFB.ar(freq*((detune/100)+1),synfb,1);
+	snd = LeakDC.ar(snd) * env;
+	OffsetOut.ar(out, DirtPan.ar(snd, ~dirt.numChannels, pan, env));
+
+}).add;
+
+
+//james mccartney via jeff
+SynthDef(\superspno, { |out, pan, freq=440, sustain=1, lopprop = 3|
+	var output, n = 6, max = 0.04, min = 0.01, delay, pitch, detune, hammer, amp = 1, env;
+	var midifreq = freq.cpsmidi;
+	hammer = Decay2.ar(Trig.ar(1, SampleDur.ir), 0.08, 0.04, LFNoise2.ar([2000,4000].asSpec.map(amp), 0.25));
+	output = Mix.ar(Array.fill(3, { arg i;
+			detune = #[-0.04, 0, 0.03].at(i);
+			delay = (1/(midifreq + detune).midicps);
+			CombL.ar(hammer, delay, delay, 50*amp)
+		}) );
+
+	env = EnvGen.ar(Env.perc(0.01,sustain, amp, -1), doneAction:2);
+	output = HPF.ar(output,freq) * env;
+	output = LPF.ar(output, lopprop*freq);
+	Out.ar(out, DirtPan.ar(output, ~dirt.numChannels, pan, env));
+
