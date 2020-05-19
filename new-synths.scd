@@ -135,7 +135,7 @@ SynthDef(\supersglk, {
 	var att1 = 0.0001;
 	var rel1 = 6;
 	var exciterRel = 0.05;
-	var amp = 0.005;
+	var amp = 0.02;
 	var env, env2, snd, exciter;
 
 	env = Env.perc(att1, exciterRel, 0.25).kr;
@@ -170,7 +170,7 @@ metadata: (
 
 SynthDef(\superspbell, { arg out, singSwitch = 0, freq = 2434, sustain = 1, pan;
 	var snd, input, first, freqScale, mallet, sing;
-	var amp = 0.5, att1 = 0.001, env2;
+	var amp = 0.15, att1 = 0.001, env2;
 	freqScale = (2*freq )/ 2434;
 	env2 = EnvGen.ar(Env.perc(att1, sustain*4, 1),1, doneAction: 2);
 
