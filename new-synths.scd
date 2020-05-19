@@ -426,7 +426,7 @@ SynthDef(\superschimes, {
 
 
 
-	OffsetOut.ar(out, DirtPan.ar(snd*env2, ~dirt.numChannels, pan, env));
+	OffsetOut.ar(out, DirtPan.ar(snd*env2, ~dirt.numChannels, pan, env2));
 
 },
 metadata: (
