@@ -93,13 +93,13 @@ SynthDef(\supersrhodes, {
 //theseanco's harpsi
 SynthDef(\supersharpsi, {
     |out, freq, voice = 0.1, pan, sustain=1, att = 0.01, rel=1, synfb = 0.3, detune = 0|
-    var snd, click=0, env;
+    var snd, click=0, env, amp = 0.15;
     // Basic tone is a SinOsc
 	
 	env = EnvGen.ar(Env.linen(att,0.3,rel),timeScale:sustain,doneAction:2);
 	env = EnvGen.ar(Env.linen(att,0.3,rel),timeScale:sustain,doneAction:2);
 	snd = LFTri.ar(freq, click, 1) * SinOscFB.ar(freq*((detune/100)+1),synfb,1);
-	snd = LeakDC.ar(snd) * env;
+	snd = LeakDC.ar(snd) * env * amp;
 	OffsetOut.ar(out, DirtPan.ar(snd, ~dirt.numChannels, pan, env));
 
 }).add;
@@ -135,7 +135,7 @@ SynthDef(\supersglk, {
 	var att1 = 0.0001;
 	var rel1 = 6;
 	var exciterRel = 0.05;
-	var amp = 0.01;
+	var amp = 0.005;
 	var env, env2, snd, exciter;
 
 	env = Env.perc(att1, exciterRel, 0.25).kr;
@@ -150,7 +150,7 @@ SynthDef(\supersglk, {
 		        	[1, 0.205, 1, 0.196, 0.339, 0.047, 0.058, 0.047]     // ring times
 		        ]),
 		input: exciter,
-		freqscale: freq,
+		freqscale: freq*2,
 		decayscale: sustain
 	);
 
@@ -171,7 +171,7 @@ metadata: (
 SynthDef(\superspbell, { arg out, singSwitch = 0, freq = 2434, sustain = 1, pan;
 	var snd, input, first, freqScale, mallet, sing;
 	var amp = 0.5, att1 = 0.001, env2;
-	freqScale = freq / 2434;
+	freqScale = (2*freq )/ 2434;
 	env2 = EnvGen.ar(Env.perc(att1, sustain*4, 1),1, doneAction: 2);
 
 
@@ -264,9 +264,9 @@ metadata: (
 
 SynthDef(\supersprisset, {arg out, pan, freq = 440, sustain = 1, pulseFreq = 8;
     var partials, durs, amps, snd, env;
-	var att = 0.01, rel = 11, amp = 0.1;
+	var att = 0.01, rel = 11, amp = 1.0;
  	partials = [246.4, 247.4, 404.8, 406.5, 523.6, 748, 880, 1206, 1320, 1654, 1791]; // original freqs
-	partials = (partials / 440) * freq; // consider 440 the 'root'
+	partials = (partials / 440) * freq*1.7857142857142856; // consider 440 the 'root'
 	durs = [11, 10, 7, 6, 4, 3.4, 3, 2.2, 2, 1.1, 1] / 11;
 	amps = durs.linlin(1, 11, 0.2, 1);
 
@@ -297,7 +297,7 @@ metadata: (
 ).add;
 
 SynthDef(\supersrbell, { arg out, pan, freq = 400, sustain = 1;
-	var amp  = 0.1;
+	var amp  = 0.2;
 	var att = 0.005;
 	var amps = #[1, 0.67, 1, 1.8, 2.67, 1.67, 1.46, 1.33, 1.33, 1, 1.33];
 	var durs = #[1, 0.9, 0.65, 0.55, 0.325, 0.35, 0.25, 0.2, 0.15, 0.1, 0.075];
@@ -313,7 +313,7 @@ SynthDef(\supersrbell, { arg out, pan, freq = 400, sustain = 1;
 			curve: att.explin(0.005, 4, -4.5, 0)
 		), 1);
 		SinOsc.ar(
-			freq: freq * frqs[i] + dets[i],
+			freq: freq * 1.84 * frqs[i] + dets[i],
 			mul: amp * env
 		);
 	});
@@ -403,7 +403,7 @@ Modified by Bruno Ruviaro and Josh Mitchell 8/19.
 SynthDef(\superschimes, {
 	arg freq = 440, pan, sustain = 1, out;
 
-	var amp = 0.1, att = 0.005, rel = 9 * sustain, exciterRel = 0.05, env2; 
+	var amp = 0.2, att = 0.005, rel = 9 * sustain, exciterRel = 0.05, env2; 
 	var env, snd, exciter;
 
 	env = Env.perc(att, exciterRel, 0.05).kr;
@@ -422,7 +422,7 @@ SynthDef(\superschimes, {
 		decayscale: rel
 	);
 
-	snd = LPF.ar(snd, freq * 9.5);
+	snd = LPF.ar(snd*amp, freq * 9.5);
 
 
 
