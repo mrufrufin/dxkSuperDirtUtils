@@ -1,7 +1,8 @@
 //superssq, superstri, superssin, supersfm
-//supersklm, superspno, supersharpsi, supersharpsi2, supersrhodes
+//supersklm, superspno, supersharpsi, supersharpsi2, supersrhodes, supersrhodes2
 //superglk, superspbell, supersprisset, supersrbell, superssosbell, superschimes
 //superssaw, superswarsaw
+//superstriwave, supersmoogb, supersmoogb2, superspwm, superswhoorgan
 SynthDef(\superssq, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq, lopprop = 100, duty = 0.5|
 		var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
 		var basefreq = freq* Line.kr(1, 1+accelerate, sustain);
@@ -90,16 +91,49 @@ SynthDef(\supersrhodes, {
 
 }).add;
 
+//fmrhodes2 from sclorksynths
+SynthDef(\supersrhodes2, {
+    arg
+    // standard meanings
+    out, freq, gate = 1, pan, att = 0.001, rel = 1,
+	lfo = 2.4, modidx = 2, modharm = 30,
+    // all of these range from 0 to 1
+    voice = 0.2, lfoDepth = 0.75, lfoBottom = 0.15, lfoRange = 0.3;
+
+	var amp = 0.1;
+	var inputLevel = 0.2;
+    var env1, env2, env3, env4, range, bottom;
+    var osc1, osc2, osc3, osc4, snd;
+
+	bottom = lfoBottom.linlin(0, 1, 100, 12000);
+	range = lfoRange.linlin(0, 1, bottom, 16000);
+
+    env1 = Env.perc(att, rel * 1.25, inputLevel, curve: \lin).kr;
+    env2 = Env.perc(att, rel, inputLevel, curve: \lin).kr;
+    env3 = Env.perc(att, rel * 1.5, inputLevel, curve: \lin).kr;
+    env4 = Env.perc(att, rel * 1.5, inputLevel, curve: \lin).kr;
+
+    osc4 = SinOsc.ar(freq) * 6.7341546494171 * modidx * env4;
+    osc3 = SinOsc.ar(freq * 2, osc4) * env3;
+    osc2 = SinOsc.ar(freq * modharm) * 0.683729941 * env2;
+    osc1 = SinOsc.ar(freq * 2, osc2) * env1;
+
+    snd = Mix((osc3 * (1 - voice)) + (osc1 * voice));
+	snd = LPF.ar(snd, SinOsc.kr(lfo).range(bottom, range), lfoDepth) + (snd * (1 - lfoDepth));
+    snd = snd * Env.asr(0, 1, 0.1).kr(gate: gate, doneAction: 2);
+	OffsetOut.ar(out, DirtPan.ar(snd*amp, ~dirt.numChannels, pan, env4));
+}).add;
+
 //theseanco's harpsi
 SynthDef(\supersharpsi, {
-    |out, freq, voice = 0.1, pan, sustain=1, att = 0.01, rel=1, synfb = 0.3, detune = 0|
+    |out, freq, voice = 0.1, pan, sustain=1, att = 0.01, rel=1, synFb = 0.3, detune = 0|
     var snd, click=0, env, amp = 0.15;
     // Basic tone is a SinOsc
 	
 	env = EnvGen.ar(Env.linen(att,0.3,rel),timeScale:sustain,doneAction:2);
 	env = EnvGen.ar(Env.linen(att,0.3,rel),timeScale:sustain,doneAction:2);
-	snd = LFTri.ar(freq, click, 1) * SinOscFB.ar(freq*((detune/100)+1),synfb,1);
-	snd = LeakDC.ar(snd) * env * amp;
+	snd = LFTri.ar(freq, click, 1) * SinOscFB.ar(freq*((detune/100)+1),synFb,1);
+	snd = LeakDC.ar(snd) * env*amp;
 	OffsetOut.ar(out, DirtPan.ar(snd, ~dirt.numChannels, pan, env));
 
 }).add;
@@ -133,13 +167,13 @@ Modified by Bruno Ruviaro and Josh Mitchell 8/19.
 SynthDef(\supersglk, {
 	arg out, freq = 440, sustain = 1, pan = 0;
 	var att1 = 0.0001;
-	var rel1 = 6;
+	var rel1 = 6*sustain;
 	var exciterRel = 0.05;
 	var amp = 0.02;
 	var env, env2, snd, exciter;
 
 	env = Env.perc(att1, exciterRel, 0.25).kr;
-	env2 = EnvGen.ar(Env.perc(att1, sustain*4, 1),1, doneAction: 2);
+	env2 = EnvGen.ar(Env.perc(att1, rel1, 1),1, doneAction: 2);
 	exciter = WhiteNoise.ar(env);
 
 	snd = DynKlank.ar(
@@ -151,7 +185,7 @@ SynthDef(\supersglk, {
 		        ]),
 		input: exciter,
 		freqscale: freq*2,
-		decayscale: sustain
+		decayscale: rel1
 	);
 
 
@@ -171,8 +205,8 @@ metadata: (
 SynthDef(\superspbell, { arg out, singSwitch = 0, freq = 2434, sustain = 1, pan;
 	var snd, input, first, freqScale, mallet, sing;
 	var amp = 0.15, att1 = 0.001, env2;
-	freqScale = (2*freq )/ 2434;
-	env2 = EnvGen.ar(Env.perc(att1, sustain*4, 1),1, doneAction: 2);
+	freqScale = (2*freq) / 2434;
+	env2 = EnvGen.ar(Env.perc(att1, sustain*4),1, doneAction: 2);
 
 
 
@@ -252,7 +286,7 @@ SynthDef(\superspbell, { arg out, singSwitch = 0, freq = 2434, sustain = 1, pan;
 
 
 
-	OffsetOut.ar(out, DirtPan.ar(Mix.ar(snd*env2), ~dirt.numChannels, pan, env2));
+	OffsetOut.ar(out, DirtPan.ar(Mix.ar(snd)*env2, ~dirt.numChannels, pan, env2));
 	
 },
 metadata: (
@@ -264,7 +298,7 @@ metadata: (
 
 SynthDef(\supersprisset, {arg out, pan, freq = 440, sustain = 1, pulseFreq = 8;
     var partials, durs, amps, snd, env;
-	var att = 0.01, rel = 11, amp = 1.0;
+	var att = 0.01, rel = 11, amp = 1;
  	partials = [246.4, 247.4, 404.8, 406.5, 523.6, 748, 880, 1206, 1320, 1654, 1791]; // original freqs
 	partials = (partials / 440) * freq*1.7857142857142856; // consider 440 the 'root'
 	durs = [11, 10, 7, 6, 4, 3.4, 3, 2.2, 2, 1.1, 1] / 11;
@@ -510,6 +544,7 @@ SynthDef(\superssaw, {
 //http://sccode.org/1-54H
 }).add;
 
+
 //from sclorkugens
 
 SynthDef(\superswarsaw, {
@@ -567,3 +602,139 @@ SynthDef(\dxkWineBank, {|out, pan, freq = 1000, pitchy = 1, sustain = 1|
 	Out.ar(out, output);
 }).add;
 */
+
+//moogbasstone2 from everythingwillbetakenaway
+SynthDef(\supersmoogb2,{|out, freq = 440, gate=1 att= 0.2 voice=0.5, sustain = 1, decay = 0, synCutoff= 1000, pan|
+
+	var osc, filter, env, filterenv, gain = 2.0, amp = 0.1, snd;
+	//var rel = 0.2;
+
+	//alternative: richer source
+	osc = Mix(Pulse.ar(freq.lag(0.05)*[1.0,1.001,2.0],Rand(0.45,0.5)!3,0.33));
+
+	filterenv = EnvGen.ar(Env.adsr(att,0.0,1.0,0.2),gate);
+	filter =  MoogFF.ar(osc,synCutoff*(1.0+(voice*filterenv)),gain);
+	env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), gate,  timeScale:sustain, doneAction:2);
+
+	//env = EnvGen.ar(Env.adsr(0.001,0.3,0.9,rel),gate,doneAction:2);
+
+	snd = (0.7*filter+(0.3*filter.distort))*env*amp;
+	OffsetOut.ar(out, DirtPan.ar(snd, ~dirt.numChannels, pan, env));
+
+
+}).add;
+
+//moogbass from everythingwillbetakenaway
+SynthDef(\supersmoogb, {
+	arg out, pan, freq,  gate = 1, synCutoff = 1000, att = 0.001, decay = 0, sustain = 1, voice = 0.7;
+
+	var osc, filter, env, filterenv, snd, chorusfx, gain = 2, lagamount = 0.01, sus = 0.9, amp = 0.1;
+	// var decay = 0.3, rel = 0.2;
+	osc = Mix(VarSaw.ar(
+		freq: freq.lag(lagamount) * [1.0, 1.001, 2.0],
+		iphase: Rand(0.0,1.0) ! 3,
+		width: Rand(0.5,0.75) ! 3,
+		mul: 0.5));
+
+	filterenv = EnvGen.ar(
+		envelope: Env.asr(0.2, 1, 0.2),
+		gate: gate);
+
+	filter =  MoogFF.ar(
+		in: osc,
+		freq: synCutoff * (1.0 + (0.5 * filterenv)),
+		gain: gain);
+
+	/*
+	env = EnvGen.ar(
+		envelope: Env.adsr(0.001, 0.3, 0.9, rel, amp),
+		gate: gate,
+		doneAction: 2);
+	*/
+	env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), gate,  timeScale:sustain, doneAction:2);
+
+	snd = (0.7 * filter + (0.3 * filter.distort)) * env;
+
+	chorusfx = Mix.fill(7, {
+
+		var maxdelaytime = rrand(0.005, 0.02);
+		DelayC.ar(
+			in: snd,
+			maxdelaytime: maxdelaytime,
+			delaytime: LFNoise1.kr(
+				freq: Rand(4.5, 10.5),
+				mul: 0.25 * maxdelaytime,
+				add: 0.75 * maxdelaytime)
+		)
+	});
+
+	snd = snd + (chorusfx * voice);
+
+	OffsetOut.ar(out, DirtPan.ar(snd, ~dirt.numChannels, pan, env));
+
+
+}).add;
+
+//trianglewavebells from everythingwillbetakenaway
+SynthDef(\superstriwave,{
+	arg out, pan, freq, gate = 1, att = 0.01, decay = 0.0, sustain = 1, lfo = 10, lfoWidth = 0.0, synCutoff = 100, synRq = 0.5;
+
+	var osc1, osc2, vibrato, filter, env, snd, amp = 1.0, sus = 1;
+	//var rel = 0.5, decay = 0.1;
+	vibrato = SinOsc.ar(lfo, Rand(0, 2.0));
+	osc1 = Saw.ar(freq * (1.0 + (lfoWidth * vibrato)), 0.75);
+	osc2 = Mix(LFTri.ar((freq.cpsmidi + [11.9, 12.1]).midicps));
+	filter = RHPF.ar((osc1 + (osc2 * 0.5)) * 0.5, synCutoff, synRq);
+	env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), gate,  timeScale:sustain, doneAction:2);
+	/*
+	env = EnvGen.ar(
+		envelope: Env.adsr(att, decay, sus, rel, amp),
+		gate: gate,
+		doneAction: 2);
+	*/
+	snd = filter * env;
+
+	OffsetOut.ar(out, DirtPan.ar(snd, ~dirt.numChannels, pan, env));
+	
+}).add;
+
+//pwmbling from everythingwillbetakenaway
+SynthDef(\superspwm,{|out, freq = 440, gate=1, lfo = 4.85, lfoWidth= 0.5, synCutoff= 12000, synRq=0.25, pan|
+
+	//voice = rq
+	var vib, pulse, filter, env, snd, amp = 0.1;
+	var basefreq =  ((freq.cpsmidi)+[0,12.12]).midicps;
+
+	vib = LFTri.kr(lfo*[1,1.01],Rand(0,2.0)!2);
+
+	pulse = Pulse.ar(basefreq,vib*lfoWidth+0.5);
+
+	env = EnvGen.ar(Env.adsr(0.0,1.0,0.2,1.5),gate,doneAction:2);
+
+	filter = RLPF.ar(pulse,(synCutoff*(env.squared))+100,synRq);
+
+	snd = Mix(filter)*env*amp;
+	OffsetOut.ar(out, DirtPan.ar(snd, ~dirt.numChannels, pan, env));
+	
+
+}).add;
+
+//whoorgan from everythingwillbetakenaway
+SynthDef(\superswhoorgan,{|out, freq,  gate=1, synCutoff=8000, synRq=0.8, sustain = 1, decay = 0, pan|
+
+	var osc, filter, env, amp = 0.1, snd;
+	var basefreq =  ((freq.cpsmidi)+[0,0.1]).midicps;
+
+	//osc = Mix(Blip.ar(basefreq,16))*0.5;
+
+  	osc = Mix.fill(10,{|i| SinOsc.ar(basefreq*(i+1),0.0,(0.25+(0.75*LFNoise0.kr(10.1+i,0.5,0.5)))/(1.0+(0.5*i)))})*0.2;
+
+	filter =  BLowPass.ar(osc,2000+(amp*synCutoff),synRq);
+
+	env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), gate,  timeScale:sustain, doneAction:2);
+
+	snd = Mix(filter)*env*amp;
+	OffsetOut.ar(out, DirtPan.ar(snd, ~dirt.numChannels, pan, env));
+
+
+}).add;
