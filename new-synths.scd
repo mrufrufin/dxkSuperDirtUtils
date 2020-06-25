@@ -27,14 +27,53 @@ SynthDef(\superssin, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq|
 		OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env));
 }).add;
 
-SynthDef(\supersfm, {|out, rate = 1, decay = 0, sustain = 1, pan, accelerate, freq, modidx = 1, modharm = 1|
+SynthDef(\supers2sin, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq, detune = 0|
+		var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
+		var basefreq = freq* Line.kr(1, 1+accelerate, sustain);
+	    var sig = SinOsc.ar([basefreq,basefreq+detune]);
+		sig = Mix(sig)* 0.5;
+		OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env));
+}).add;
+
+SynthDef(\supersfm, {|out, rate = 1, decay = 0, sustain = 1, pan, accelerate, freq, midx = 1, mharm = 1|
 	var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
 	var basefreq = freq* Line.kr(1, 1+accelerate, sustain);
-	var modfreq = basefreq * modharm;
-	var mod = SinOsc.ar(modfreq,0, modfreq * modidx);
+	var modfreq = basefreq * mharm;
+	var mod = SinOsc.ar(modfreq,0, modfreq * midx);
 	var sig = SinOsc.ar(mod + basefreq);
 	OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env));
 }).add;
+
+SynthDef(\supersem, {|out, rate = 1, decay = 0, sustain = 1, pan, accelerate, freq, midx = 1, mharm = 1, pmidx = 0, pmfreq = 0|
+	var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
+	var basefreq = freq* Line.kr(1, 1+accelerate, sustain);
+	var modfreq = basefreq * mharm;
+	var mod = SinOsc.ar(modfreq,0, modfreq * midx);
+	var sig = PMOsc.ar(mod + basefreq, pmreq, pmidx);
+	OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env));
+}).add;
+
+
+SynthDef(\supers2fm, {|out, rate = 1, decay = 0, sustain = 1, pan, accelerate, freq, midx = 1, mharm = 1, detune=0|
+	var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
+	var basefreq = freq* Line.kr(1, 1+accelerate, sustain);
+	var modfreq = basefreq * mharm;
+	var mod = SinOsc.ar(modfreq,0, modfreq * midx);
+	var sig = SinOsc.ar(mod + [basefreq, basefreq + detune]);
+	sig = Mix(sig) * 0.5;
+	OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env));
+}).add;
+
+SynthDef(\super2sem, {|out, rate = 1, decay = 0, sustain = 1, pan, accelerate, freq, midx = 1, mharm = 1, pmidx = 0, pmfreq = 0, detune = 0|
+	var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
+	var basefreq = freq* Line.kr(1, 1+accelerate, sustain);
+	var modfreq = basefreq * mharm;
+	var mod = SinOsc.ar(modfreq,0, modfreq * midx);
+	var sig = PMOsc.ar(mod + [basefreq, basefreq + detune], pmreq, pmidx);
+	sig = Mix(sig) * 0.5;
+	OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env));
+}).add;
+
 
 //snappizz's kalimba
 SynthDef(\supersklm, {
