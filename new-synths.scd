@@ -49,7 +49,7 @@ SynthDef(\supersem, {|out, rate = 1, decay = 0, sustain = 1, pan, accelerate, fr
 	var basefreq = freq* Line.kr(1, 1+accelerate, sustain);
 	var modfreq = basefreq * mharm;
 	var mod = SinOsc.ar(modfreq,0, modfreq * midx);
-	var sig = PMOsc.ar(mod + basefreq, pmreq, pmidx);
+	var sig = PMOsc.ar(mod + basefreq, pmfreq, pmidx);
 	OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env));
 }).add;
 
@@ -59,7 +59,7 @@ SynthDef(\supers2fm, {|out, rate = 1, decay = 0, sustain = 1, pan, accelerate, f
 	var basefreq = freq* Line.kr(1, 1+accelerate, sustain);
 	var modfreq = basefreq * mharm;
 	var mod = SinOsc.ar(modfreq,0, modfreq * midx);
-	var sig = SinOsc.ar(mod + [basefreq, basefreq + detune]);
+	var sig = SinOsc.ar([mod + basefreq, mod + basefreq + detune]);
 	sig = Mix(sig) * 0.5;
 	OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env));
 }).add;
@@ -69,7 +69,7 @@ SynthDef(\super2sem, {|out, rate = 1, decay = 0, sustain = 1, pan, accelerate, f
 	var basefreq = freq* Line.kr(1, 1+accelerate, sustain);
 	var modfreq = basefreq * mharm;
 	var mod = SinOsc.ar(modfreq,0, modfreq * midx);
-	var sig = PMOsc.ar(mod + [basefreq, basefreq + detune], pmreq, pmidx);
+	var sig = PMOsc.ar([mod + basefreq, mod + basefreq + detune], pmfreq, pmidx);
 	sig = Mix(sig) * 0.5;
 	OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env));
 }).add;
