@@ -80,8 +80,8 @@ let setI = streamSetI tidal
 :{
 let duty = pF "duty"
     lopprop = pF "lopprop"
-	pmfreq = pF "pmfreq"
-	pmidx = pF "pmidx"
+    pmfreq = pF "pmfreq"
+    pmidx = pF "pmidx"
     midx = pF "midx"
     mharm = pF "mharm"
     target = pF "target"
@@ -98,7 +98,11 @@ let duty = pF "duty"
 :}
 
 
-
+:{
+let ahr x y z = (att x # hold y # rel z)
+    rsd x y z = (room x # size y # dry z)
+    deltf x y z = (delay x # delaytime y # delayfb z)
+:}
 
 
 -- let dlopamp = pF "dlopamp"; dlopfb = pF "dlopfb"; dlopt = pF "dlopt"; dloplpf = pF "dloplpf"; dloplock = pF "dloplock"; fvbdry = pF "fvbdry"; fvbrm = pF "fvbrm"; fvbsize = pF "fvbsize"; fvbdamp = pF "fvbdamp"; fvblpfin = pF "fvblpfin"; fvblpfout= pF "fvblpfout"
