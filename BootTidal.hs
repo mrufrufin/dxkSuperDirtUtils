@@ -102,6 +102,9 @@ let duty = pF "duty"
 let ahr x y z = (att x # hold y # rel z)
     rsd x y z = (room x # size y # dry z)
     deltf x y z = (delay x # delaytime y # delayfb z)
+    fmod x y = (mharm x # midx y)
+    pmod x y= (pmfreq x # pmidx y)
+    edo x y = note (toScale (map (* (12/x)) [0 .. (x-1)]) y)
 :}
 
 
