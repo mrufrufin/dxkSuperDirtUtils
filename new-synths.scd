@@ -777,3 +777,24 @@ SynthDef(\superswhoorgan,{|out, freq,  gate=1, synCutoff=8000, synRq=0.8, sustai
 
 
 }).add;
+
+SynthDef(\inmono, { |out, sustain = 1, pan, inputFadeTime = 0.03|
+	var env, sound;
+	env = EnvGen.ar(Env.linen(inputFadeTime, sustain - (2 * inputFadeTime), inputFadeTime), doneAction:2); 
+	sound = SoundIn.ar(0); // mono in
+	OffsetOut.ar(out,
+		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
+	);
+}).add
+
+SynthDef(\inrmono, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset, inputFadeTime = 0.03, winSize = 0.1, pDisp = 0.02, tDisp = 0.01|
+	var env, sound, rate, phase;
+	env = EnvGen.ar(Env.linen(inputFadeTime, sustain - (2 * inputFadeTime), inputFadeTime), doneAction: 2);
+	phase = Line.ar(begin, end, sustain);
+	rate = (begin + 1) * (speed + Sweep.kr(1, accelerate)) * freq / 440;
+	sound = SoundIn.ar(0); // stereo in
+	sound = PitchShift.ar(sound, winSize, rate, pDisp, tDisp);
+	OffsetOut.ar(out,
+		DirtPan.ar(sound, ~dirt.numChannels, pan, env);
+	)
+}).add

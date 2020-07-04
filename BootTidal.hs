@@ -95,6 +95,9 @@ let duty = pF "duty"
     lfo = pF "lfo"
     lfoWidth = pF "lfoWidth"
     synRq = pF "synRq"
+    winSize = pF "winSize"
+    pDisp = pF "pDisp"
+    tDisp = pF "tDisp"
 :}
 
 
@@ -105,6 +108,9 @@ let ahr x y z = (att x # hold y # rel z)
     fmod x y = (mharm x # midx y)
     pmod x y= (pmfreq x # pmidx y)
     edo x y = note (toScale (map (* (12/x)) [0 .. (x-1)]) y)
+    phasrd x y = (phasr x # phasdp y)
+    lrs x y z = (leslie x # lrate y # lsize z)
+    rfs x y z = (ring x # ringf y # ringdf z)
 :}
 
 
