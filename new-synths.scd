@@ -64,7 +64,7 @@ SynthDef(\supers2fm, {|out, rate = 1, decay = 0, sustain = 1, pan, accelerate, f
 	OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env));
 }).add;
 
-SynthDef(\super2sem, {|out, rate = 1, decay = 0, sustain = 1, pan, accelerate, freq, midx = 1, mharm = 1, pmidx = 0, pmfreq = 0, detune = 0|
+SynthDef(\supers2em, {|out, rate = 1, decay = 0, sustain = 1, pan, accelerate, freq, midx = 1, mharm = 1, pmidx = 0, pmfreq = 0, detune = 0|
 	var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
 	var basefreq = freq* Line.kr(1, 1+accelerate, sustain);
 	var modfreq = basefreq * mharm;
@@ -785,7 +785,7 @@ SynthDef(\inmono, { |out, sustain = 1, pan, inputFadeTime = 0.03|
 	OffsetOut.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
 	);
-}).add
+}).add;
 
 SynthDef(\inrmono, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset, inputFadeTime = 0.03, winSize = 0.1, pDisp = 0.02, tDisp = 0.01|
 	var env, sound, rate, phase;
@@ -797,4 +797,31 @@ SynthDef(\inrmono, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, p
 	OffsetOut.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan, env);
 	)
-}).add
+}).add;
+(
+SynthDef(\intrmono, { |out, sustain = 1, ampThresh = 0.03, pan, duty = 0.5, voice = 0, pRatio = 1, pLag = 0.01, detune = 1.01, inputFadeTime = 0.03|
+	var inSound, inAmp, pitch, hasPitch, env, sound, pitchArr;
+    var outAmp, sinsound, sawsound, pulsesound, ampEnough;
+	env = EnvGen.ar(Env.linen(inputFadeTime, sustain - (2 * inputFadeTime), inputFadeTime), doneAction:2); 
+	inSound = SoundIn.ar(0); // mono in
+	
+    inAmp = Amplitude.kr(inSound, 0.01, 0.01);
+    inAmp = Clip.kr(inAmp, -1.0, 1.0);
+    # pitch, hasPitch = Tartini.kr(inSound);
+    //pitch = pitch.cpsmidi.round(1).midicps;
+    pitch = Lag.kr(pitch, pLag);
+    pitch = pitch * pRatio;
+    pitchArr = [pitch, pitch*detune];
+    hasPitch = hasPitch * BinaryOpUGen('>=', pitch, 30) * BinaryOpUGen('<=', pitch,15000);
+    ampEnough = BinaryOpUGen('>=', inAmp, ampThresh);
+    outAmp = LPF.kr(inAmp * hasPitch * ampEnough, 10);
+    sinsound = Mix.ar(SinOsc.ar(pitchArr, 0, outAmp));
+    //sawsound = Mix.ar(VarSaw.ar(pitchArr,0,duty, outAmp));
+    //pulsesound = Mix.ar(Pulse.ar(pitchArr,duty, outAmp));
+    //sound = SelectX.ar(voice, [sinsound, sawsound, pulsesound]);
+    sound = sinsound;
+    OffsetOut.ar(out,
+		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
+	);
+}).add;
+)

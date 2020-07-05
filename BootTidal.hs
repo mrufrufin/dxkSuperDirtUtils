@@ -98,6 +98,9 @@ let duty = pF "duty"
     winSize = pF "winSize"
     pDisp = pF "pDisp"
     tDisp = pF "tDisp"
+    pRatio = pF "pRatio"
+    pLag = pF "pLag"
+    ampThresh = pF "ampThresh"
 :}
 
 
