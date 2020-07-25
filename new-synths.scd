@@ -135,11 +135,11 @@ SynthDef(\supersrhodes2, {
     arg
     // standard meanings
     out, freq, gate = 1, pan, att = 0.001, rel = 1,
-	lfo = 2.4, modidx = 2, modharm = 30,
+	lfo = 2.4, midx = 2, mharm = 30,
     // all of these range from 0 to 1
     voice = 0.2, lfoDepth = 0.75, lfoBottom = 0.15, lfoRange = 0.3;
 
-	var amp = 0.1;
+	var amp = 1;
 	var inputLevel = 0.2;
     var env1, env2, env3, env4, range, bottom;
     var osc1, osc2, osc3, osc4, snd;
@@ -152,9 +152,9 @@ SynthDef(\supersrhodes2, {
     env3 = Env.perc(att, rel * 1.5, inputLevel, curve: \lin).kr;
     env4 = Env.perc(att, rel * 1.5, inputLevel, curve: \lin).kr;
 
-    osc4 = SinOsc.ar(freq) * 6.7341546494171 * modidx * env4;
+    osc4 = SinOsc.ar(freq) * 6.7341546494171 * midx * env4;
     osc3 = SinOsc.ar(freq * 2, osc4) * env3;
-    osc2 = SinOsc.ar(freq * modharm) * 0.683729941 * env2;
+    osc2 = SinOsc.ar(freq * mharm) * 0.683729941 * env2;
     osc1 = SinOsc.ar(freq * 2, osc2) * env1;
 
     snd = Mix((osc3 * (1 - voice)) + (osc1 * voice));
@@ -163,20 +163,27 @@ SynthDef(\supersrhodes2, {
 	OffsetOut.ar(out, DirtPan.ar(snd*amp, ~dirt.numChannels, pan, env4));
 }).add;
 
+
 //theseanco's harpsi
 SynthDef(\supersharpsi, {
-    |out, freq, voice = 0.1, pan, sustain=1, att = 0.01, rel=1, synFb = 0.3, detune = 0|
+    |out, freq, voice = 0.3, pan, sustain=1, att = 0.01, hold, rel=1, detune = 0|
     var snd, click=0, env, amp = 0.15;
     // Basic tone is a SinOsc
-	
-	env = EnvGen.ar(Env.linen(att,0.3,rel),timeScale:sustain,doneAction:2);
-	env = EnvGen.ar(Env.linen(att,0.3,rel),timeScale:sustain,doneAction:2);
-	snd = LFTri.ar(freq, click, 1) * SinOscFB.ar(freq*((detune/100)+1),synFb,1);
-	snd = LeakDC.ar(snd) * env*amp;
+    
+    /*
+	env =EnvGen.ar( Env.perc(
+		attackTime: att,
+		releaseTime: rel,
+		level: 1
+	), timeScale: sustain, doneAction: 2);
+    */
+    //env = EnvGen.ar(Env.perc(att, 0.833*decay + 0.04 + rel, curve: \lin));
+    env = EnvGen.ar(Env.linen(att,hold,rel),timeScale:sustain,doneAction:2);  
+	snd = LFTri.ar(freq, click, 1) * SinOscFB.ar(freq*(detune+1),voice,1);
+	snd = LeakDC.ar(snd) * amp;
 	OffsetOut.ar(out, DirtPan.ar(snd, ~dirt.numChannels, pan, env));
 
 }).add;
-
 
 //james mccartney via jeff
 SynthDef(\superspno, { |out, pan, freq=440, sustain=1, lopprop = 6|
@@ -550,7 +557,7 @@ SynthDef(\supersharpsi2, {
 	        mul: (1 - blend)
         );
 
-	snd = Mix.ar(root + octave);
+	snd = Mix.ar(HPF.ar(root + octave, freq * 0.9));
 	
 	OffsetOut.ar(out, DirtPan.ar(snd*env, ~dirt.numChannels, pan, env));
 
@@ -561,17 +568,17 @@ metadata: (
 	tags: [\pitched]
 	)
 ).add;
-
 //from sclorkugens
 SynthDef(\superssaw, {
-	arg freq = 440, sustain = 1, pan, out, lofreq = 1000, hifreq = 3000;
-    var env, snd, amp = 0.5, rel = sustain*2, att = 0.1;
+	arg freq = 440, sustain = 1, pan, out, lofreq = 1000, hifreq = 3000, att = 0.1, rel;
+    var env, snd, amp = 0.5;
+
     env =EnvGen.ar( Env.perc(
 		attackTime: att,
 		releaseTime: rel,
 		level: amp
 	), 1, doneAction: 2);
-    snd = Saw.ar(freq: freq * [0.99, 1, 1.001, 1.008], mul: env);
+    snd = Saw.ar(freq: freq * [0.99, 1, 1.001, 1.008]);
 	snd = LPF.ar(
 		in: snd,
 		freq: LFNoise2.kr(1).range(lofreq, hifreq)
@@ -582,7 +589,6 @@ SynthDef(\superssaw, {
 //By Bruno Ruviaro
 //http://sccode.org/1-54H
 }).add;
-
 
 //from sclorkugens
 
@@ -799,13 +805,13 @@ SynthDef(\inrmono, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, p
 	)
 }).add;
 (
-SynthDef(\intrmono, { |out, sustain = 1, ampThresh = 0.03, pan, duty = 0.5, voice = 0, pRatio = 1, pLag = 0.01, detune = 1.01, inputFadeTime = 0.03|
+SynthDef(\intrmono, { |out, sustain = 1, ampThresh = 0.03, pan, duty = 0.5, voice = 0, pRatio = 1, pLag = 0.01, detune = 1.01, inputFadeTime = 0.03, clean = 0, tracked = 1|
 	var inSound, inAmp, pitch, hasPitch, env, sound, pitchArr;
     var outAmp, sinsound, sawsound, pulsesound, ampEnough;
 	env = EnvGen.ar(Env.linen(inputFadeTime, sustain - (2 * inputFadeTime), inputFadeTime), doneAction:2); 
 	inSound = SoundIn.ar(0); // mono in
 	
-    inAmp = Amplitude.kr(inSound, 0.01, 0.01);
+    inAmp = Amplitude.kr(inSound, 0.03, 0.03);
     inAmp = Clip.kr(inAmp, -1.0, 1.0);
     # pitch, hasPitch = Tartini.kr(inSound);
     //pitch = pitch.cpsmidi.round(1).midicps;
@@ -816,10 +822,7 @@ SynthDef(\intrmono, { |out, sustain = 1, ampThresh = 0.03, pan, duty = 0.5, voic
     ampEnough = BinaryOpUGen('>=', inAmp, ampThresh);
     outAmp = LPF.kr(inAmp * hasPitch * ampEnough, 10);
     sinsound = Mix.ar(SinOsc.ar(pitchArr, 0, outAmp));
-    //sawsound = Mix.ar(VarSaw.ar(pitchArr,0,duty, outAmp));
-    //pulsesound = Mix.ar(Pulse.ar(pitchArr,duty, outAmp));
-    //sound = SelectX.ar(voice, [sinsound, sawsound, pulsesound]);
-    sound = sinsound;
+    sound = (sinsound * tracked) + (Clip.ar(inSound, -1.0, 1.0) * clean);
     OffsetOut.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
 	);

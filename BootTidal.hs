@@ -12,7 +12,10 @@ hSetEncoding stdout utf8
 
 -- total latency = oLatency + cFrameTimespan
 
-tidal <- startTidal (superdirtTarget {oLatency = 0.3, oAddress = "127.0.0.1", oPort = 57120}) (defaultConfig {cFrameTimespan = 1/15})
+tidal <- startTidal (superdirtTarget {oLatency = 0.37, oAddress = "127.0.0.1", oPort = 57120}) (defaultConfig {cFrameTimespan = 1/10})
+
+-- midi input
+-- tidal <- startTidal (superdirtTarget {oLatency = 0.3, oAddress = "127.0.0.1", oPort = 57120}) (defaultConfig {cFrameTimespan = 1/15, cCtrlAddr = "127.0.0.1", cCtrlPort = 6010})
 
 -- tidal <- startMulti [(superdirtTarget {oLatency = 0.2, oAddress = "127.0.0.1", oPort = 57120}), arduinoRouter] (defaultConfig {cFrameTimespan = 1/20})
 
@@ -101,6 +104,8 @@ let duty = pF "duty"
     pRatio = pF "pRatio"
     pLag = pF "pLag"
     ampThresh = pF "ampThresh"
+    clean = pF "clean"
+    tracked = pF "tracked"
 :}
 
 
@@ -114,7 +119,9 @@ let ahr x y z = (att x # hold y # rel z)
     phasrd x y = (phasr x # phasdp y)
     lrs x y z = (leslie x # lrate y # lsize z)
     rfs x y z = (ring x # ringf y # ringdf z)
-:}
+    silencer y = do
+        mapM_ (\x -> p x silence) y
+    :}
 
 
 -- let dlopamp = pF "dlopamp"; dlopfb = pF "dlopfb"; dlopt = pF "dlopt"; dloplpf = pF "dloplpf"; dloplock = pF "dloplock"; fvbdry = pF "fvbdry"; fvbrm = pF "fvbrm"; fvbsize = pF "fvbsize"; fvbdamp = pF "fvbdamp"; fvblpfin = pF "fvblpfin"; fvblpfout= pF "fvblpfout"
