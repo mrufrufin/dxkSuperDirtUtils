@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+ghci -ghci-script $HOME/tidalstuff/repos/dxkSuperDirtUtils/BootTidal.hs
+
