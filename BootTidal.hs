@@ -22,7 +22,8 @@ tidal <- startTidal (superdirtTarget {oLatency = 0.37, oAddress = "127.0.0.1", o
 {-tidal <- startMulti [superdirtTarget {oLatency = 0.25, oAddress = "127.0.0.1", oPort = 57120}, p5Target] (defaultConfig {cFrameTimespan = 1/20}) -}
 
 :{
-let p = streamReplace tidal
+let only = (hush >>)
+    p = streamReplace tidal
     hush = streamHush tidal
     list = streamList tidal
     mute = streamMute tidal
@@ -72,7 +73,8 @@ let p = streamReplace tidal
 :}
 
 :{
-let setI = streamSetI tidal
+let getState = streamGet tidal
+    setI = streamSetI tidal
     setF = streamSetF tidal
     setS = streamSetS tidal
     setR = streamSetR tidal
@@ -128,3 +130,5 @@ let ahr x y z = (att x # hold y # rel z)
 
 
 :set prompt "tidal> "
+
+default (Pattern String, Integer, Double)
